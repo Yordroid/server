@@ -23,51 +23,52 @@ type commandMap map[string]Command
 
 var (
 	commands = commandMap{
-		"ADAT": commandAdat{},
-		"ALLO": commandAllo{},
-		"APPE": commandAppe{},
-		"AUTH": commandAuth{},
-		"CDUP": commandCdup{},
-		"CWD":  commandCwd{},
-		"CCC":  commandCcc{},
-		"CONF": commandConf{},
-		"DELE": commandDele{},
-		"ENC":  commandEnc{},
-		"EPRT": commandEprt{},
-		"EPSV": commandEpsv{},
-		"FEAT": commandFeat{},
-		"LIST": commandList{},
-		"LPRT": commandLprt{},
-		"NLST": commandNlst{},
-		"MDTM": commandMdtm{},
-		"MIC":  commandMic{},
-		"MKD":  commandMkd{},
-		"MODE": commandMode{},
-		"NOOP": commandNoop{},
-		"OPTS": commandOpts{},
-		"PASS": commandPass{},
-		"PASV": commandPasv{},
-		"PBSZ": commandPbsz{},
-		"PORT": commandPort{},
-		"PROT": commandProt{},
-		"PWD":  commandPwd{},
-		"QUIT": commandQuit{},
-		"RETR": commandRetr{},
-		"REST": commandRest{},
-		"RNFR": commandRnfr{},
-		"RNTO": commandRnto{},
-		"RMD":  commandRmd{},
-		"SIZE": commandSize{},
-		"STOR": commandStor{},
-		"STRU": commandStru{},
-		"SYST": commandSyst{},
-		"TYPE": commandType{},
-		"USER": commandUser{},
-		"XCUP": commandCdup{},
-		"XCWD": commandCwd{},
-		"XMKD": commandMkd{},
-		"XPWD": commandPwd{},
-		"XRMD": commandRmd{},
+		"ADAT":     commandAdat{},
+		"ALLO":     commandAllo{},
+		"APPE":     commandAppe{},
+		"AUTH":     commandAuth{},
+		"CDUP":     commandCdup{},
+		"CWD":      commandCwd{},
+		"CCC":      commandCcc{},
+		"CONF":     commandConf{},
+		"DELE":     commandDele{},
+		"ENC":      commandEnc{},
+		"EPRT":     commandEprt{},
+		"EPSV":     commandEpsv{},
+		"FEAT":     commandFeat{},
+		"LIST":     commandList{},
+		"LPRT":     commandLprt{},
+		"NLST":     commandNlst{},
+		"MDTM":     commandMdtm{},
+		"MIC":      commandMic{},
+		"MKD":      commandMkd{},
+		"MODE":     commandMode{},
+		"NOOP":     commandNoop{},
+		"OPTS":     commandOpts{},
+		"PASS":     commandPass{},
+		"PASV":     commandPasv{},
+		"PBSZ":     commandPbsz{},
+		"PORT":     commandPort{},
+		"PROT":     commandProt{},
+		"PWD":      commandPwd{},
+		"QUIT":     commandQuit{},
+		"RETR":     commandRetr{},
+		"REST":     commandRest{},
+		"RNFR":     commandRnfr{},
+		"RNTO":     commandRnto{},
+		"RMD":      commandRmd{},
+		"SIZE":     commandSize{},
+		"STOR":     commandStor{},
+		"STRU":     commandStru{},
+		"SYST":     commandSyst{},
+		"TYPE":     commandType{},
+		"USER":     commandUser{},
+		"XCUP":     commandCdup{},
+		"XCWD":     commandCwd{},
+		"XMKD":     commandMkd{},
+		"XPWD":     commandPwd{},
+		"XRMD":     commandRmd{},
+		"PROGRESS": commandProgress{},
 	}
 )
 
@@ -1149,14 +1150,14 @@ func (cmd commandSyst) Execute(conn *Conn, param string) {
 
 // commandType responds to the TYPE FTP command.
 //
-//  like the MODE and STRU commands, TYPE dates back to a time when the FTP
-//  protocol was more aware of the content of the files it was transferring, and
-//  would sometimes be expected to translate things like EOL markers on the fly.
+//	like the MODE and STRU commands, TYPE dates back to a time when the FTP
+//	protocol was more aware of the content of the files it was transferring, and
+//	would sometimes be expected to translate things like EOL markers on the fly.
 //
-//  Valid options were A(SCII), I(mage), E(BCDIC) or LN (for local type). Since
-//  we plan to just accept bytes from the client unchanged, I think Image mode is
-//  adequate. The RFC requires we accept ASCII mode however, so accept it, but
-//  ignore it.
+//	Valid options were A(SCII), I(mage), E(BCDIC) or LN (for local type). Since
+//	we plan to just accept bytes from the client unchanged, I think Image mode is
+//	adequate. The RFC requires we accept ASCII mode however, so accept it, but
+//	ignore it.
 type commandType struct{}
 
 func (cmd commandType) IsExtend() bool {
@@ -1203,4 +1204,23 @@ func (cmd commandUser) Execute(conn *Conn, param string) {
 	} else {
 		conn.writeMessage(534, "Unsecured login not allowed. AUTH TLS required")
 	}
+}
+
+type commandProgress struct{}
+
+func (cmd commandProgress) IsExtend() bool {
+	return false
+}
+
+func (cmd commandProgress) RequireParam() bool {
+	return true
+}
+
+func (cmd commandProgress) RequireAuth() bool {
+	return false
+}
+
+func (cmd commandProgress) Execute(conn *Conn, param string) {
+	conn.driver.OnXLProgress(param)
+	conn.writeMessage(200, "received success")
 }
