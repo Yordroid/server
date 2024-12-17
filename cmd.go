@@ -657,6 +657,10 @@ func (cmd commandPasv) Execute(conn *Conn, param string) {
 	p1 := socket.Port() / 256
 	p2 := socket.Port() - (p1 * 256)
 	quads := strings.Split(listenIP, ".")
+	if len(quads) < 4 {
+		conn.writeMessage(425, "server conf ip fail,contact ftp server"+listenIP)
+		return
+	}
 	target := fmt.Sprintf("(%s,%s,%s,%s,%d,%d)", quads[0], quads[1], quads[2], quads[3], p1, p2)
 	msg := "Entering Passive Mode " + target
 	conn.writeMessage(227, msg)
